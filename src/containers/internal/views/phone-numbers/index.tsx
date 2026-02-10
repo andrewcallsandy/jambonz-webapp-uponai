@@ -21,6 +21,7 @@ import {
 } from "src/components";
 import {
   ROUTE_INTERNAL_ACCOUNTS,
+  ROUTE_INTERNAL_APPLICATIONS,
   ROUTE_INTERNAL_CARRIERS,
   ROUTE_INTERNAL_PHONE_NUMBERS,
 } from "src/router/routes";
@@ -350,13 +351,20 @@ export const PhoneNumbers = () => {
                             }`}
                           >
                             <Icons.Grid />
-                            <span>
-                              {applications?.find(
-                                (app) =>
-                                  app.application_sid ===
-                                  phoneNumber.application_sid,
-                              )?.name || "None"}
-                            </span>
+                            {phoneNumber.application_sid ? (
+                              <Link
+                                to={`${ROUTE_INTERNAL_APPLICATIONS}/${phoneNumber.application_sid}/edit`}
+                                title="View application"
+                              >
+                                {applications?.find(
+                                  (app) =>
+                                    app.application_sid ===
+                                    phoneNumber.application_sid,
+                                )?.name}
+                              </Link>
+                            ) : (
+                              <span>None</span>
+                            )}
                           </div>
                         </div>
                       </div>

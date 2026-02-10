@@ -190,6 +190,33 @@ export const Carriers = () => {
     fetchCarriers(isFilterOrProviderChange || isPageSizeChange);
   }, [currentServiceProvider, accountSid, filter, pageNumber, perPageFilter]);
 
+  // Force refresh when navigating back to this page
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && currentServiceProvider) {
+        // Clear carriers to force a fresh fetch
+        setCarriers(null);
+        fetchCarriers(false);
+      }
+    };
+
+    // Also handle popstate (browser back/forward)
+    const handlePopState = () => {
+      if (currentServiceProvider) {
+        setCarriers(null);
+        fetchCarriers(false);
+      }
+    };
+
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [currentServiceProvider, accountSid, filter, pageNumber, perPageFilter]);
+
   return (
     <>
       <section className="mast">

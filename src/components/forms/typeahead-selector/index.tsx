@@ -100,17 +100,22 @@ export const TypeaheadSelector = forwardRef<
      *
      * - Updates the input field with user's typed value
      * - Opens the dropdown menu
-     * - Shows all available options (unfiltered)
-     * - Finds and highlights the first option that starts with the input text
+     * - Filters options based on the input text (case-insensitive)
+     * - Finds and highlights the first matching option
      * - Scrolls the highlighted option into view
      */
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const input = e.target.value;
       setInputValue(input);
       setIsOpen(true);
-      setFilteredOptions(options);
+      
+      // Filter options based on input text
+      const filtered = options.filter((opt) =>
+        opt.name.toLowerCase().includes(input.toLowerCase())
+      );
+      setFilteredOptions(filtered);
 
-      const currentIndex = options.findIndex((opt) =>
+      const currentIndex = filtered.findIndex((opt) =>
         opt.name.toLowerCase().startsWith(input.toLowerCase()),
       );
       setActiveIndex(currentIndex);
@@ -218,6 +223,7 @@ export const TypeaheadSelector = forwardRef<
      *
      * - Opens the dropdown menu
      * - Shows all available options (unfiltered)
+     * - Clears input field to allow immediate typing and filtering
      * - Finds and highlights the currently selected option based on value or input text
      * - Scrolls the highlighted option into view after dropdown renders
      *
@@ -226,9 +232,13 @@ export const TypeaheadSelector = forwardRef<
     const handleFocus = () => {
       setIsOpen(true);
       setFilteredOptions(options);
+      
+      // Clear input field to allow immediate typing and filtering
+      setInputValue("");
+      
       // Find and highlight the current value in the dropdown
       const currentIndex = options.findIndex(
-        (opt) => opt.value === value || opt.name === inputValue,
+        (opt) => opt.value === value,
       );
       setActiveIndex(currentIndex);
 
@@ -342,8 +352,14 @@ export const TypeaheadSelector = forwardRef<
           onClick={() => {
             setIsOpen(!isOpen);
             setFilteredOptions(options);
+            
+            // Clear input field when opening dropdown to allow immediate typing
+            if (!isOpen) {
+              setInputValue("");
+            }
+            
             const currentIndex = options.findIndex(
-              (opt) => opt.value === value || opt.name === inputValue,
+              (opt) => opt.value === value,
             );
             setActiveIndex(currentIndex);
 
