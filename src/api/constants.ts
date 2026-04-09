@@ -35,6 +35,7 @@ interface JambonzWindowObject {
   DISABLE_ADDITIONAL_SPEECH_VENDORS: string;
   AWS_REGION: string;
   ENABLE_PHONE_NUMBER_LAZY_LOAD: string;
+  ADMIN_CARRIER: string;
 }
 
 declare global {
@@ -110,6 +111,8 @@ export const STRIPE_PUBLISHABLE_KEY: string =
   window.JAMBONZ?.STRIPE_PUBLISHABLE_KEY ||
   import.meta.env.VITE_APP_STRIPE_PUBLISHABLE_KEY;
 
+export const ADMIN_CARRIER: string =
+  window.JAMBONZ?.ADMIN_CARRIER || import.meta.env.VITE_ADMIN_CARRIER || "0";
 /** TCP Max Port */
 export const TCP_MAX_PORT = 65535;
 
@@ -131,7 +134,7 @@ export const DEFAULT_WEBHOOK: WebHook = {
 };
 
 /** Default SIP/SMPP Gateways  */
-export const DEFAULT_SIP_GATEWAY: SipGateway = {
+export const DEFAULT_SIP_INBOUND_GATEWAY: SipGateway = {
   voip_carrier_sid: "",
   ipv4: "",
   port: 5060,
@@ -348,6 +351,12 @@ export const DTMF_TYPE_SELECTION: SelectorOptions[] = [
   { name: "Tones", value: "tones" },
 ];
 
+export const TRUNK_TYPE_SELECTION: SelectorOptions[] = [
+  { name: "IP Trunk", value: "static_ip" },
+  { name: "Auth Trunk", value: "auth" },
+  { name: "Registration Trunk", value: "reg" },
+];
+
 /** Available webhook methods */
 export const WEBHOOK_METHODS: WebhookOption[] = [
   {
@@ -421,6 +430,13 @@ export const CurrencySymbol: Currency = {
 export const DEEPGRAM_STT_ENPOINT = [
   { name: "US (Default)", value: "" },
   { name: "EU-hosted", value: "api.eu.deepgram.com" },
+];
+
+// ElevenLabs API URI options
+export const ELEVENLABS_API_URI_OPTIONS = [
+  { name: "US", value: "api.elevenlabs.io" },
+  { name: "EU", value: "api.eu.residency.elevenlabs.io" },
+  { name: "IN", value: "api.in.residency.elevenlabs.io" },
 ];
 
 /** User scope values values */

@@ -55,6 +55,8 @@ import {
   VENDOR_INWORLD,
   VENDOR_DEEPGRAM_FLUX,
   VENDOR_RESEMBLE,
+  VENDOR_HOUNDIFY,
+  VENDOR_GLADIA,
 } from "src/vendor";
 import { MSG_REQUIRED_FIELDS } from "src/constants";
 import {
@@ -95,6 +97,7 @@ import {
   DEFAULT_VERBIO_MODEL,
   DISABLE_ADDITIONAL_SPEECH_VENDORS,
   DISABLE_CUSTOM_SPEECH,
+  ELEVENLABS_API_URI_OPTIONS,
   GOOGLE_CUSTOM_VOICES_REPORTED_USAGE,
   VERBIO_STT_MODELS,
 } from "src/api/constants";
@@ -121,11 +124,13 @@ export const SpeechServiceForm = ({ credential }: SpeechServiceFormProps) => {
   );
   const [region, setRegion] = useState("");
   const [apiKey, setApiKey] = useState("");
+  const [apiUri, setApiUri] = useState("api.elevenlabs.io");
   const [userId, setUserId] = useState("");
   const [accessKeyId, setAccessKeyId] = useState("");
   const [secretAccessKey, setSecretAccessKey] = useState("");
   const [clientId, setClientId] = useState("");
   const [secretKey, setSecretKey] = useState("");
+  const [clientKey, setClientKey] = useState("");
   const [clientSecret, setClientSecret] = useState("");
   const [googleServiceKey, setGoogleServiceKey] =
     useState<GoogleServiceKey | null>(null);
@@ -214,6 +219,7 @@ export const SpeechServiceForm = ({ credential }: SpeechServiceFormProps) => {
     useState(false);
   const [resembleTtsUseTls, setResembleTtsUseTls] = useState(false);
   const [tmpResembleTtsUseTls, setTmpResembleTtsUseTls] = useState(false);
+  const [houndifyServerUri, setHoundifyServerUri] = useState("");
   const handleFile = (file: File) => {
     const handleError = () => {
       setGoogleServiceKey(null);
@@ -406,6 +412,9 @@ export const SpeechServiceForm = ({ credential }: SpeechServiceFormProps) => {
         ...(vendor === VENDOR_AWS && {
           aws_region: region || null,
         }),
+        ...(vendor === VENDOR_GOOGLE && {
+          model_id: ttsModelId || null,
+        }),
         ...(vendor === VENDOR_MICROSOFT && {
           region: region || null,
           use_custom_tts:
@@ -447,6 +456,12 @@ export const SpeechServiceForm = ({ credential }: SpeechServiceFormProps) => {
           nuance_tts_uri: onPremNuanceTtsUrl || null,
           nuance_stt_uri: onPremNuanceSttUrl || null,
         }),
+        ...(vendor === VENDOR_HOUNDIFY && {
+          client_id: clientId || null,
+          client_key: clientKey || null,
+          user_id: userId || null,
+          houndify_server_uri: houndifyServerUri || null,
+        }),
         ...(vendor === VENDOR_COBALT && {
           cobalt_server_uri: cobaltServerUri || null,
         }),
@@ -455,6 +470,9 @@ export const SpeechServiceForm = ({ credential }: SpeechServiceFormProps) => {
           vendor === VENDOR_INWORLD ||
           vendor === VENDOR_RIMELABS) && {
           model_id: ttsModelId || null,
+        }),
+        ...(vendor === VENDOR_ELEVENLABS && {
+          api_uri: apiUri || null,
         }),
         ...((vendor === VENDOR_ELEVENLABS ||
           vendor === VENDOR_PLAYHT ||
@@ -491,6 +509,10 @@ export const SpeechServiceForm = ({ credential }: SpeechServiceFormProps) => {
         ...(vendor === VENDOR_RESEMBLE && {
           resemble_tts_uri: resembleTtsUri || null,
           resemble_tts_use_tls: resembleTtsUseTls ? 1 : 0,
+        }),
+        ...(vendor === VENDOR_GLADIA && {
+          api_key: apiKey || null,
+          region: region || null,
         }),
       };
 
@@ -543,7 +565,8 @@ export const SpeechServiceForm = ({ credential }: SpeechServiceFormProps) => {
               vendor === VENDOR_CARTESIA ||
               vendor === VENDOR_OPENAI ||
               vendor === VENDOR_RESEMBLE ||
-              vendor === VENDOR_DEEPGRAM_FLUX
+              vendor === VENDOR_DEEPGRAM_FLUX ||
+              vendor === VENDOR_GLADIA
                 ? apiKey
                 : null,
           }),
@@ -697,6 +720,10 @@ export const SpeechServiceForm = ({ credential }: SpeechServiceFormProps) => {
         setApiKey(credential.data.api_key);
       }
 
+      if (credential.data.api_uri) {
+        setApiUri(credential.data.api_uri);
+      }
+
       if (credential.data.region) {
         setRegion(credential.data.region);
       }
@@ -707,6 +734,9 @@ export const SpeechServiceForm = ({ credential }: SpeechServiceFormProps) => {
 
       if (credential.data.client_id) {
         setClientId(credential.data.client_id);
+      }
+      if (credential.data.client_key) {
+        setClientKey(credential.data.client_key);
       }
 
       if (credential.data.secret) {
@@ -819,6 +849,10 @@ export const SpeechServiceForm = ({ credential }: SpeechServiceFormProps) => {
       setOptionsInitialChecked(true);
     }
     if (credential?.data?.vendor === VENDOR_GOOGLE) {
+      // Load model_id for Gemini TTS
+      if (credential.data.model_id) {
+        setTtsModelId(credential.data.model_id);
+      }
       // let try to check if there is custom voices
       getGoogleCustomVoices({
         speech_credential_sid: credential.data.speech_credential_sid,
@@ -845,6 +879,10 @@ export const SpeechServiceForm = ({ credential }: SpeechServiceFormProps) => {
 
     if (credential?.data?.user_id) {
       setUserId(credential.data.user_id);
+    }
+
+    if (credential?.data?.houndify_server_uri) {
+      setHoundifyServerUri(credential.data.houndify_server_uri);
     }
 
     if (credential?.data?.voice_engine) {
@@ -954,6 +992,9 @@ export const SpeechServiceForm = ({ credential }: SpeechServiceFormProps) => {
               setVendor(e.target.value as Lowercase<Vendor>);
               setRegion("");
               setApiKey("");
+              setApiUri(
+                e.target.value === VENDOR_ELEVENLABS ? "api.elevenlabs.io" : "",
+              );
               setGoogleServiceKey(null);
             }}
             disabled={credential ? true : false}
@@ -1010,7 +1051,9 @@ export const SpeechServiceForm = ({ credential }: SpeechServiceFormProps) => {
               vendor !== VENDOR_SONIOX &&
               vendor !== VENDOR_SPEECHMATICS &&
               vendor !== VENDOR_DEEPGRAM_FLUX &&
+              vendor !== VENDOR_HOUNDIFY &&
               vendor !== VENDOR_OPENAI &&
+              vendor !== VENDOR_GLADIA &&
               vendor != VENDOR_CUSTOM && (
                 <label htmlFor="use_for_tts" className="chk">
                   <input
@@ -1194,220 +1237,297 @@ export const SpeechServiceForm = ({ credential }: SpeechServiceFormProps) => {
               </fieldset>
             )}
             {ttsCheck && vendor === VENDOR_GOOGLE && (
-              <fieldset>
-                <label htmlFor="use_custom_voice" className="chk">
+              <>
+                <fieldset>
+                  <label htmlFor="google_tts_model_id">
+                    Model ID
+                    <Tooltip text="Provide a model ID to enable Gemini TTS (e.g., gemini-2.5-flash-tts). Leave empty to use standard Google TTS.">
+                      {" "}
+                    </Tooltip>
+                  </label>
                   <input
-                    id="use_custom_voice"
-                    name="use_custom_voice"
-                    type="checkbox"
-                    onChange={(e) => {
-                      if (e.target.checked && customVoices.length === 0) {
-                        setCustomVoices([DEFAULT_GOOGLE_CUSTOM_VOICE]);
-                      }
-                      setUseCustomVoicesCheck(e.target.checked);
-                    }}
-                    checked={useCustomVoicesCheck}
+                    id="google_tts_model_id"
+                    name="google_tts_model_id"
+                    type="text"
+                    placeholder="e.g., gemini-2.5-flash-tts"
+                    value={ttsModelId}
+                    onChange={(e) => setTtsModelId(e.target.value)}
                   />
-                  <div>Use custom voices</div>
-                </label>
-                {useCustomVoicesCheck && (
-                  <fieldset>
-                    <label htmlFor="sip_gateways">Custom Voices</label>
-                    <MXS>
-                      <em>At least one Custom voice is required.</em>
-                    </MXS>
-                    {customVoicesMessage && (
-                      <Message message={customVoicesMessage} />
-                    )}
-                    {hasLength(customVoices) &&
-                      customVoices.map((v, i) => (
-                        <div key={`custom_voice_${i}`} className="customVoice">
-                          <div>
+                </fieldset>
+                <fieldset>
+                  <label htmlFor="use_custom_voice" className="chk">
+                    <input
+                      id="use_custom_voice"
+                      name="use_custom_voice"
+                      type="checkbox"
+                      onChange={(e) => {
+                        if (e.target.checked && customVoices.length === 0) {
+                          setCustomVoices([DEFAULT_GOOGLE_CUSTOM_VOICE]);
+                        }
+                        setUseCustomVoicesCheck(e.target.checked);
+                      }}
+                      checked={useCustomVoicesCheck}
+                    />
+                    <div>Use custom voices</div>
+                  </label>
+                  {useCustomVoicesCheck && (
+                    <fieldset>
+                      <label htmlFor="sip_gateways">Custom Voices</label>
+                      <MXS>
+                        <em>At least one Custom voice is required.</em>
+                      </MXS>
+                      {customVoicesMessage && (
+                        <Message message={customVoicesMessage} />
+                      )}
+                      {hasLength(customVoices) &&
+                        customVoices.map((v, i) => (
+                          <div
+                            key={`custom_voice_${i}`}
+                            className="customVoice"
+                          >
                             <div>
-                              <label htmlFor="custom_voice_name">
-                                Name
-                                {!v.use_voice_cloning_key
-                                  ? " / Reported Usage"
-                                  : ""}
-                              </label>
-                            </div>
-                          </div>
-
-                          <div>
-                            <div>
-                              <input
-                                id={`sip_ip_${i}`}
-                                name={`sip_ip_${i}`}
-                                type="text"
-                                placeholder="Assigned Name"
-                                required
-                                value={v.name}
-                                onChange={(e) => {
-                                  updateCustomVoices(i, "name", e.target.value);
-                                }}
-                              />
-                            </div>
-
-                            {!v.use_voice_cloning_key && (
                               <div>
-                                <Selector
-                                  id={"google_custom_voices_reported_usage"}
-                                  name={"google_custom_voices_reported_usage"}
-                                  value={v.reported_usage}
-                                  options={GOOGLE_CUSTOM_VOICES_REPORTED_USAGE}
+                                <label htmlFor="custom_voice_name">
+                                  Name
+                                  {!v.use_voice_cloning_key
+                                    ? " / Reported Usage"
+                                    : ""}
+                                </label>
+                              </div>
+                            </div>
+
+                            <div>
+                              <div>
+                                <input
+                                  id={`sip_ip_${i}`}
+                                  name={`sip_ip_${i}`}
+                                  type="text"
+                                  placeholder="Assigned Name"
+                                  required
+                                  value={v.name}
                                   onChange={(e) => {
                                     updateCustomVoices(
                                       i,
-                                      "reported_usage",
+                                      "name",
                                       e.target.value,
                                     );
                                   }}
                                 />
                               </div>
-                            )}
-                          </div>
 
-                          <label
-                            htmlFor={`use_voice_cloning_key_${i}`}
-                            className="chk"
-                          >
-                            <input
-                              id={`use_voice_cloning_key_${i}`}
-                              name={`use_voice_cloning_key_${i}`}
-                              type="checkbox"
-                              onChange={(e) => {
-                                updateCustomVoices(
-                                  i,
-                                  "use_voice_cloning_key",
-                                  e.target.checked ? 1 : 0,
-                                );
-                              }}
-                              checked={v.use_voice_cloning_key ? true : false}
-                            />
-                            <div>Use voice cloning key</div>
-                          </label>
-
-                          {!v.use_voice_cloning_key && (
-                            <>
-                              <div>
+                              {!v.use_voice_cloning_key && (
                                 <div>
-                                  <label htmlFor="custom_voice_name">
-                                    Model
-                                  </label>
-                                </div>
-                              </div>
-
-                              <div>
-                                <div>
-                                  <input
-                                    id={`sip_ip_${i}`}
-                                    name={`sip_ip_${i}`}
-                                    type="text"
-                                    placeholder="Model"
-                                    required
-                                    value={v.model}
-                                    style={{ maxWidth: "100%" }}
+                                  <Selector
+                                    id={"google_custom_voices_reported_usage"}
+                                    name={"google_custom_voices_reported_usage"}
+                                    value={v.reported_usage}
+                                    options={
+                                      GOOGLE_CUSTOM_VOICES_REPORTED_USAGE
+                                    }
                                     onChange={(e) => {
                                       updateCustomVoices(
                                         i,
-                                        "model",
+                                        "reported_usage",
                                         e.target.value,
                                       );
                                     }}
                                   />
                                 </div>
-                              </div>
-                            </>
-                          )}
+                              )}
+                            </div>
 
-                          {v.use_voice_cloning_key === 1 && (
-                            <>
-                              <div>
+                            <label
+                              htmlFor={`use_voice_cloning_key_${i}`}
+                              className="chk"
+                            >
+                              <input
+                                id={`use_voice_cloning_key_${i}`}
+                                name={`use_voice_cloning_key_${i}`}
+                                type="checkbox"
+                                onChange={(e) => {
+                                  updateCustomVoices(
+                                    i,
+                                    "use_voice_cloning_key",
+                                    e.target.checked ? 1 : 0,
+                                  );
+                                }}
+                                checked={v.use_voice_cloning_key ? true : false}
+                              />
+                              <div>Use voice cloning key</div>
+                            </label>
+
+                            {!v.use_voice_cloning_key && (
+                              <>
                                 <div>
-                                  {hasValue(v.voice_cloning_key) && (
-                                    <pre>
-                                      <code>{v.voice_cloning_key}</code>
-                                    </pre>
-                                  )}
+                                  <div>
+                                    <label htmlFor="custom_voice_name">
+                                      Model
+                                    </label>
+                                  </div>
                                 </div>
+
                                 <div>
-                                  <FileUpload
-                                    id={`google_voice_cloning_key_${i}`}
-                                    name={`google_voice_cloning_key_${i}`}
-                                    handleFile={(file) => {
-                                      updateCustomVoices(
-                                        i,
-                                        "voice_cloning_key_file",
-                                        file,
-                                      );
-                                      file.text().then((text) => {
+                                  <div>
+                                    <input
+                                      id={`sip_ip_${i}`}
+                                      name={`sip_ip_${i}`}
+                                      type="text"
+                                      placeholder="Model"
+                                      required
+                                      value={v.model}
+                                      style={{ maxWidth: "100%" }}
+                                      onChange={(e) => {
                                         updateCustomVoices(
                                           i,
-                                          "voice_cloning_key",
-                                          text.substring(0, 100) + "...",
+                                          "model",
+                                          e.target.value,
                                         );
-                                      });
-                                    }}
-                                    required={!v.voice_cloning_key}
-                                  />
+                                      }}
+                                    />
+                                  </div>
                                 </div>
-                              </div>
-                            </>
-                          )}
+                              </>
+                            )}
 
-                          <button
-                            className="btnty"
-                            title="Delete custom voice"
-                            type="button"
-                            onClick={() => {
-                              setCustomVoicesMessage("");
-                              if (customVoices.length === 1) {
-                                setCustomVoicesMessage(
-                                  "You must provide at least one custom voice.",
+                            {v.use_voice_cloning_key === 1 && (
+                              <>
+                                <div>
+                                  <div>
+                                    {hasValue(v.voice_cloning_key) && (
+                                      <pre>
+                                        <code>{v.voice_cloning_key}</code>
+                                      </pre>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <FileUpload
+                                      id={`google_voice_cloning_key_${i}`}
+                                      name={`google_voice_cloning_key_${i}`}
+                                      handleFile={(file) => {
+                                        updateCustomVoices(
+                                          i,
+                                          "voice_cloning_key_file",
+                                          file,
+                                        );
+                                        file.text().then((text) => {
+                                          updateCustomVoices(
+                                            i,
+                                            "voice_cloning_key",
+                                            text.substring(0, 100) + "...",
+                                          );
+                                        });
+                                      }}
+                                      required={!v.voice_cloning_key}
+                                    />
+                                  </div>
+                                </div>
+                              </>
+                            )}
+
+                            <button
+                              className="btnty"
+                              title="Delete custom voice"
+                              type="button"
+                              onClick={() => {
+                                setCustomVoicesMessage("");
+                                if (customVoices.length === 1) {
+                                  setCustomVoicesMessage(
+                                    "You must provide at least one custom voice.",
+                                  );
+                                  return;
+                                }
+                                if (v.google_custom_voice_sid) {
+                                  deleteGoogleCustomVoice(
+                                    v.google_custom_voice_sid,
+                                  ).finally(() => {
+                                    credential?.refetch();
+                                  });
+                                }
+                                setCustomVoices((prev) =>
+                                  prev.filter((_, idx) => idx !== i),
                                 );
-                                return;
-                              }
-                              if (v.google_custom_voice_sid) {
-                                deleteGoogleCustomVoice(
-                                  v.google_custom_voice_sid,
-                                ).finally(() => {
-                                  credential?.refetch();
-                                });
-                              }
-                              setCustomVoices((prev) =>
-                                prev.filter((_, idx) => idx !== i),
-                              );
-                            }}
-                          >
-                            <Icon>
-                              <Icons.Trash2 />
-                            </Icon>
-                          </button>
-                        </div>
-                      ))}
-                    <ButtonGroup left>
-                      <button
-                        className="btnty"
-                        type="button"
-                        title="Add Voice"
-                        onClick={() => {
-                          setCustomVoicesMessage("");
-                          setCustomVoices((prev) => [
-                            ...prev,
-                            DEFAULT_GOOGLE_CUSTOM_VOICE,
-                          ]);
-                        }}
-                      >
-                        <Icon subStyle="teal">
-                          <Icons.Plus />
-                        </Icon>
-                      </button>
-                    </ButtonGroup>
-                  </fieldset>
-                )}
-              </fieldset>
+                              }}
+                            >
+                              <Icon>
+                                <Icons.Trash2 />
+                              </Icon>
+                            </button>
+                          </div>
+                        ))}
+                      <ButtonGroup left>
+                        <button
+                          className="btnty"
+                          type="button"
+                          title="Add Voice"
+                          onClick={() => {
+                            setCustomVoicesMessage("");
+                            setCustomVoices((prev) => [
+                              ...prev,
+                              DEFAULT_GOOGLE_CUSTOM_VOICE,
+                            ]);
+                          }}
+                        >
+                          <Icon subStyle="teal">
+                            <Icons.Plus />
+                          </Icon>
+                        </button>
+                      </ButtonGroup>
+                    </fieldset>
+                  )}
+                </fieldset>
+              </>
             )}
           </>
+        )}
+        {vendor === VENDOR_HOUNDIFY && (
+          <fieldset>
+            <label htmlFor="houndify_client_id">
+              Client ID
+              {!onPremNuanceSttCheck && !onPremNuanceTtsCheck && <span>*</span>}
+            </label>
+            <input
+              id="houndify_client_id"
+              required={!onPremNuanceSttCheck && !onPremNuanceTtsCheck}
+              type="text"
+              name="houndify_client_id"
+              placeholder="Client ID"
+              value={clientId}
+              onChange={(e) => setClientId(e.target.value)}
+              disabled={credential ? true : false}
+            />
+            <label htmlFor="houndify_secret">
+              Client Key
+              {!onPremNuanceSttCheck && !onPremNuanceTtsCheck && <span>*</span>}
+            </label>
+            <Passwd
+              id="houndify_secret"
+              required={!onPremNuanceSttCheck && !onPremNuanceTtsCheck}
+              name="houndify_secret"
+              placeholder="Client Key"
+              value={clientKey ? getObscuredSecret(clientKey) : clientKey}
+              onChange={(e) => setClientKey(e.target.value)}
+              disabled={credential ? true : false}
+            />
+            <label htmlFor="houndify_user_id">User ID</label>
+            <input
+              id="houndify_user_id"
+              type="text"
+              name="houndify_user_id"
+              placeholder="User ID"
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
+              disabled={credential ? true : false}
+            />
+            <label htmlFor="houndify_server_uri">Audio Endpoint</label>
+            <input
+              id="houndify_server_uri"
+              type="text"
+              name="houndify_server_uri"
+              placeholder="Audio Endpoint (optional)"
+              value={houndifyServerUri}
+              onChange={(e) => setHoundifyServerUri(e.target.value)}
+            />
+          </fieldset>
         )}
         {vendor === VENDOR_NUANCE && (
           <>
@@ -1820,10 +1940,37 @@ export const SpeechServiceForm = ({ credential }: SpeechServiceFormProps) => {
           </fieldset>
         )}
 
+        {vendor === VENDOR_ELEVENLABS && (
+          <fieldset>
+            <label htmlFor="elevenlabs_api_uri">
+              Data residency<span>*</span>
+            </label>
+            <Selector
+              id="elevenlabs_api_uri"
+              name="elevenlabs_api_uri"
+              value={apiUri}
+              options={ELEVENLABS_API_URI_OPTIONS}
+              onChange={(e) => setApiUri(e.target.value)}
+              required
+            />
+            <label htmlFor={`${vendor}_apikey`}>
+              API key<span>*</span>
+            </label>
+            <Passwd
+              id={`${vendor}_apikey`}
+              required
+              name={`${vendor}_apikey`}
+              placeholder="API key"
+              value={apiKey ? getObscuredSecret(apiKey) : apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              disabled={credential ? true : false}
+            />
+          </fieldset>
+        )}
+
         {(vendor === VENDOR_WELLSAID ||
           vendor === VENDOR_ASSEMBLYAI ||
           vendor === VENDOR_VOXIST ||
-          vendor == VENDOR_ELEVENLABS ||
           vendor === VENDOR_WHISPER ||
           vendor === VENDOR_RIMELABS ||
           vendor === VENDOR_INWORLD ||
@@ -1832,7 +1979,8 @@ export const SpeechServiceForm = ({ credential }: SpeechServiceFormProps) => {
           vendor === VENDOR_OPENAI ||
           vendor === VENDOR_DEEPGRAM_FLUX ||
           vendor === VENDOR_RESEMBLE ||
-          vendor === VENDOR_SPEECHMATICS) && (
+          vendor === VENDOR_SPEECHMATICS ||
+          vendor === VENDOR_GLADIA) && (
           <fieldset>
             <label htmlFor={`${vendor}_apikey`}>
               API key<span>*</span>

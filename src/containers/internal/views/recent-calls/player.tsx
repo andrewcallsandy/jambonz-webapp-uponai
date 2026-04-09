@@ -109,16 +109,19 @@ export const Player = ({ call }: PlayerProps) => {
   };
 
   const changeRegionMouseStyle = (region: Region, channel = 0) => {
-    region.element.style.display = regionChecked ? "" : "none";
-    region.element.style.height = "49%";
-    region.element.style.top = channel === 0 ? "0" : "51%";
+    const element = region.element;
+    if (!element) return;
 
-    region.element.addEventListener("mouseenter", () => {
-      region.element.style.cursor = "pointer"; // Change to your desired cursor style
+    element.style.display = regionChecked ? "" : "none";
+    element.style.height = "49%";
+    element.style.top = channel === 0 ? "0" : "51%";
+
+    element.addEventListener("mouseenter", () => {
+      element.style.cursor = "pointer";
     });
 
-    region.element.addEventListener("mouseleave", () => {
-      region.element.style.cursor = "default";
+    element.addEventListener("mouseleave", () => {
+      element.style.cursor = "default";
     });
   };
 
@@ -641,7 +644,11 @@ export const Player = ({ call }: PlayerProps) => {
                 const regionsList =
                   waveSurferRegionsPluginRef.current.getRegions();
                 for (const [, region] of Object.entries(regionsList)) {
-                  region.element.style.display = e.target.checked ? "" : "none";
+                  if (region.element) {
+                    region.element.style.display = e.target.checked
+                      ? ""
+                      : "none";
+                  }
                 }
               }
             }}

@@ -419,6 +419,7 @@ export interface SpeechCredential {
   custom_stt_endpoint: null | string;
   client_id: null | string;
   client_secret: null | string;
+  client_key: null | string;
   secret: null | string;
   nuance_tts_uri: null | string;
   nuance_stt_uri: null | string;
@@ -448,6 +449,8 @@ export interface SpeechCredential {
   playht_tts_uri: null | string;
   resemble_tts_uri: null | string;
   resemble_tts_use_tls: number;
+  api_uri: null | string;
+  houndify_server_uri: null | string;
 }
 
 export interface Alert {
@@ -466,6 +469,8 @@ export interface CarrierRegisterStatus {
 }
 
 export type DtmfType = "rfc2833" | "tones" | "info";
+
+export type TrunkType = "static_ip" | "auth" | "reg";
 
 export interface Carrier {
   voip_carrier_sid: string;
@@ -495,6 +500,7 @@ export interface Carrier {
   register_status: CarrierRegisterStatus;
   dtmf_type: DtmfType;
   outbound_sip_proxy: string | null;
+  trunk_type: TrunkType;
 }
 
 export interface PredefinedCarrier extends Carrier {
@@ -518,6 +524,8 @@ export interface SipGateway extends Gateway {
   pad_crypto?: boolean;
   send_options_ping?: boolean;
   use_sips_scheme?: boolean;
+  remove_ice?: boolean;
+  dtls_off?: boolean;
 }
 
 export interface SmppGateway extends Gateway {

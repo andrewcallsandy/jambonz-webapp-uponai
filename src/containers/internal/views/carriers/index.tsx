@@ -31,6 +31,9 @@ import {
   ENABLE_HOSTED_SYSTEM,
   PER_PAGE_SELECTION,
   USER_ACCOUNT,
+  ADMIN_CARRIER,
+  USER_ADMIN,
+  USER_SP,
 } from "src/api/constants";
 import { DeleteCarrier } from "./delete";
 
@@ -193,7 +196,7 @@ export const Carriers = () => {
   // Force refresh when navigating back to this page
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && currentServiceProvider) {
+      if (document.visibilityState === "visible" && currentServiceProvider) {
         // Clear carriers to force a fresh fetch
         setCarriers(null);
         fetchCarriers(false);
@@ -208,12 +211,12 @@ export const Carriers = () => {
       }
     };
 
-    window.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('popstate', handlePopState);
+    window.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("popstate", handlePopState);
 
     return () => {
-      window.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("popstate", handlePopState);
     };
   }, [currentServiceProvider, accountSid, filter, pageNumber, perPageFilter]);
 
@@ -229,13 +232,16 @@ export const Carriers = () => {
             </M>
           )}
         </div>
-
-        <Link to={`${ROUTE_INTERNAL_CARRIERS}/add`} title="Add a Carrier">
-          {" "}
-          <Icon>
-            <Icons.Plus />
-          </Icon>
-        </Link>
+        {((ADMIN_CARRIER === "1" &&
+          (user?.scope === USER_ADMIN || user?.scope === USER_SP)) ||
+          ADMIN_CARRIER === "0") && (
+          <Link to={`${ROUTE_INTERNAL_CARRIERS}/add`} title="Add a Carrier">
+            {" "}
+            <Icon>
+              <Icons.Plus />
+            </Icon>
+          </Link>
+        )}
       </section>
       <section className="filters filters--multi">
         <SearchFilter
@@ -352,11 +358,15 @@ export const Carriers = () => {
           )}
         </div>
       </Section>
-      <Section clean>
-        <Button small as={Link} to={`${ROUTE_INTERNAL_CARRIERS}/add`}>
-          Add carrier
-        </Button>
-      </Section>
+      {((ADMIN_CARRIER === "1" &&
+        (user?.scope === USER_ADMIN || user?.scope === USER_SP)) ||
+        ADMIN_CARRIER === "0") && (
+        <Section clean>
+          <Button small as={Link} to={`${ROUTE_INTERNAL_CARRIERS}/add`}>
+            Add carrier
+          </Button>
+        </Section>
+      )}
       <footer>
         <ButtonGroup>
           <MS>
