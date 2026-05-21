@@ -30,7 +30,7 @@ import {
   TRUNK_TYPE_SELECTION,
   USER_ACCOUNT,
 } from "src/api/constants";
-import { Icons, Section, Tooltip } from "src/components";
+import { ClipBoard, Icons, Section, Tooltip } from "src/components";
 import {
   Checkzone,
   Message,
@@ -987,6 +987,16 @@ export const CarrierForm = ({
             />
             <div>Active</div>
           </label>
+          {carrier && carrier.data && (
+            <>
+              <label htmlFor="voip_carrier_sid">Carrier SID</label>
+              <ClipBoard
+                id="voip_carrier_sid"
+                name="voip_carrier_sid"
+                text={carrier.data.voip_carrier_sid}
+              />
+            </>
+          )}
         </fieldset>
         <fieldset>
           <details>
