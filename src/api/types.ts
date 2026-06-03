@@ -488,6 +488,7 @@ export interface Carrier {
   register_from_user: null | string;
   register_from_domain: null | string;
   register_public_ip_in_contact: boolean;
+  register_expires: null | number;
   tech_prefix: null | string;
   diversion: null | string;
   inbound_auth_username: string;

@@ -117,6 +117,7 @@ export const CarrierForm = ({
   const [fromUser, setFromUser] = useState("");
   const [fromDomain, setFromDomain] = useState("");
   const [regPublicIpInContact, setRegPublicIpInContact] = useState(false);
+  const [registerExpires, setRegisterExpires] = useState<number | null>(null);
 
   const [prefix, setPrefix] = useState("");
   const [initialPrefix, setInitialPrefix] = useState(false);
@@ -267,6 +268,9 @@ export const CarrierForm = ({
       }
       if (obj.register_public_ip_in_contact) {
         setRegPublicIpInContact(obj.register_public_ip_in_contact);
+      }
+      if (obj.register_expires) {
+        setRegisterExpires(obj.register_expires);
       }
 
       if (obj.tech_prefix) {
@@ -740,6 +744,8 @@ export const CarrierForm = ({
         register_from_domain:
           sipRegister && fromDomain ? fromDomain.trim() : null,
         register_public_ip_in_contact: sipRegister && regPublicIpInContact,
+        register_expires:
+          sipRegister && registerExpires ? registerExpires : null,
         tech_prefix: prefix.trim() || null,
         diversion: diversion.trim() || null,
         is_active: isActive,
@@ -1515,6 +1521,22 @@ export const CarrierForm = ({
                       />
                       <div>Use public IP in contact</div>
                     </label>
+                    <label htmlFor="register_expires">
+                      Registration expires (seconds)
+                    </label>
+                    <input
+                      id="register_expires"
+                      name="register_expires"
+                      type="number"
+                      min="30"
+                      value={registerExpires ?? ""}
+                      placeholder="Default: 3600"
+                      onChange={(e) =>
+                        setRegisterExpires(
+                          e.target.value ? parseInt(e.target.value) : null,
+                        )
+                      }
+                    />
                   </>
                 );
 
