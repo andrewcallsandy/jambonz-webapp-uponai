@@ -67,6 +67,7 @@ import {
 } from "src/api/types";
 import { setAccountFilter, setLocation } from "src/store/localStore";
 import { RegisterStatus } from "./register-status";
+import { CarrierBlfPanel } from "./blf";
 import { useToast } from "src/components/toast/toast-provider";
 
 type CarrierFormProps = {
@@ -1954,6 +1955,23 @@ export const CarrierForm = ({
             </fieldset>
           </Tab>
           {/** Registration tab removed - content merged into Outbound tab */}
+          <Tab id="blf" label="BLF">
+            {carrier?.data ? (
+              <CarrierBlfPanel
+                carrier={carrier.data}
+                accountSid={accountSid}
+                trunkType={trunkType}
+                requiresRegister={sipRegister || trunkType === "reg"}
+              />
+            ) : (
+              <fieldset>
+                <MS>
+                  Save the carrier first, then return here to enable Live
+                  Extension Availability (BLF) and manage monitored extensions.
+                </MS>
+              </fieldset>
+            )}
+          </Tab>
         </Tabs>
         <fieldset>
           <ButtonGroup left>

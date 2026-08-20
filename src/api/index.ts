@@ -99,6 +99,12 @@ import type {
   PhoneNumberQuery,
   ApplicationQuery,
   VoipCarrierQuery,
+  BlfConfiguration,
+  BlfConfigurationCreate,
+  BlfMonitor,
+  BlfMonitorCreate,
+  BlfAvailabilityResponse,
+  BlfRotateTokenResponse,
 } from "./types";
 import { Availability, StatusCodes } from "./types";
 import { JaegerRoot } from "./jaeger-types";
@@ -759,6 +765,127 @@ export const deleteRecord = (url: string) => {
 export const deleteGoogleCustomVoice = (sid: string) => {
   return deleteFetch<EmptyResponse>(`${API_GOOGLE_CUSTOM_VOICES}/${sid}`);
 };
+
+/** BLF / Live Extension Availability */
+const blfConfigBase = (accountSid: string) =>
+  `${API_ACCOUNTS}/${accountSid}/BlfConfigurations`;
+
+export const getBlfConfigurations = (accountSid: string) => {
+  return getFetch<BlfConfiguration[]>(blfConfigBase(accountSid));
+};
+
+export const getBlfConfiguration = (
+  accountSid: string,
+  blfConfigurationSid: string,
+) => {
+  return getFetch<BlfConfiguration>(
+    `${blfConfigBase(accountSid)}/${blfConfigurationSid}`,
+  );
+};
+
+export const postBlfConfiguration = (
+  accountSid: string,
+  payload: BlfConfigurationCreate,
+) => {
+  return postFetch<BlfConfiguration, BlfConfigurationCreate>(
+    blfConfigBase(accountSid),
+    payload,
+  );
+};
+
+export const putBlfConfiguration = (
+  accountSid: string,
+  blfConfigurationSid: string,
+  payload: Partial<BlfConfigurationCreate>,
+) => {
+  return putFetch<BlfConfiguration, Partial<BlfConfigurationCreate>>(
+    `${blfConfigBase(accountSid)}/${blfConfigurationSid}`,
+    payload,
+  );
+};
+
+export const deleteBlfConfiguration = (
+  accountSid: string,
+  blfConfigurationSid: string,
+) => {
+  return deleteFetch<EmptyResponse>(
+    `${blfConfigBase(accountSid)}/${blfConfigurationSid}`,
+  );
+};
+
+export const postBlfRotateToken = (
+  accountSid: string,
+  blfConfigurationSid: string,
+) => {
+  return postFetch<BlfRotateTokenResponse>(
+    `${blfConfigBase(accountSid)}/${blfConfigurationSid}/rotateToken`,
+  );
+};
+
+export const getBlfMonitors = (
+  accountSid: string,
+  blfConfigurationSid: string,
+) => {
+  return getFetch<BlfMonitor[]>(
+    `${blfConfigBase(accountSid)}/${blfConfigurationSid}/Monitors`,
+  );
+};
+
+export const postBlfMonitor = (
+  accountSid: string,
+  blfConfigurationSid: string,
+  payload: BlfMonitorCreate,
+) => {
+  return postFetch<BlfMonitor, BlfMonitorCreate>(
+    `${blfConfigBase(accountSid)}/${blfConfigurationSid}/Monitors`,
+    payload,
+  );
+};
+
+export const putBlfMonitor = (
+  accountSid: string,
+  blfConfigurationSid: string,
+  blfMonitorSid: string,
+  payload: Partial<BlfMonitorCreate>,
+) => {
+  return putFetch<BlfMonitor, Partial<BlfMonitorCreate>>(
+    `${blfConfigBase(accountSid)}/${blfConfigurationSid}/Monitors/${blfMonitorSid}`,
+    payload,
+  );
+};
+
+export const deleteBlfMonitor = (
+  accountSid: string,
+  blfConfigurationSid: string,
+  blfMonitorSid: string,
+) => {
+  return deleteFetch<EmptyResponse>(
+    `${blfConfigBase(accountSid)}/${blfConfigurationSid}/Monitors/${blfMonitorSid}`,
+  );
+};
+
+export const postBlfMonitorsImport = (
+  accountSid: string,
+  blfConfigurationSid: string,
+  monitors: BlfMonitorCreate[],
+) => {
+  return postFetch<
+    { created: number; updated: number; monitors: BlfMonitor[] },
+    { monitors: BlfMonitorCreate[] }
+  >(`${blfConfigBase(accountSid)}/${blfConfigurationSid}/Monitors/import`, {
+    monitors,
+  });
+};
+
+export const getBlfAvailability = (
+  accountSid: string,
+  blfConfigurationSid: string,
+) => {
+  return getFetch<BlfAvailabilityResponse>(
+    `${blfConfigBase(accountSid)}/${blfConfigurationSid}/Availability`,
+  );
+};
+
 /** Named wrappers for `getFetch` */
 
 export const getUser = (sid: string) => {

@@ -847,3 +847,115 @@ export interface AppEnvProperty {
 export interface AppEnv {
   [key: string]: AppEnvProperty;
 }
+
+/** Live Extension Availability (BLF) */
+export type BlfEventPackage = "dialog" | "presence";
+export type BlfExtensionState =
+  | "unknown"
+  | "idle"
+  | "ringing"
+  | "busy"
+  | "held"
+  | "unavailable";
+
+export interface BlfConfiguration {
+  blf_configuration_sid: string;
+  account_sid: string;
+  voip_carrier_sid: string;
+  is_enabled: boolean;
+  event_package: BlfEventPackage;
+  subscribe_expires: number;
+  stale_seconds: number;
+  owner_node?: null | string;
+  last_reconcile_at?: null | string;
+  last_error?: null | string;
+  availability_hook?: null | {
+    webhook_sid?: string;
+    url: string;
+    method?: string;
+  };
+  capability_url?: null | string;
+  capability_token?: string;
+  created?: boolean;
+  upserted?: boolean;
+  monitors?: {
+    total: number;
+    active_subscriptions: number;
+    idle: number;
+    busy: number;
+    unknown: number;
+  };
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface BlfConfigurationCreate {
+  voip_carrier_sid: string;
+  is_enabled?: boolean;
+  event_package?: BlfEventPackage;
+  subscribe_expires?: number;
+  stale_seconds?: number;
+  availability_hook?: {
+    url: string;
+    method?: string;
+  } | null;
+}
+
+export interface BlfMonitor {
+  blf_monitor_sid: string;
+  blf_configuration_sid: string;
+  extension: string;
+  display_name?: null | string;
+  presentity_uri: string;
+  is_enabled: boolean | number;
+  contact_user?: string;
+  sub_status?: string;
+  state?: BlfExtensionState | string;
+  subscription_state?: null | string;
+  last_notify_at?: null | string;
+  stale_at?: null | string;
+  last_error?: null | string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface BlfMonitorCreate {
+  extension: string;
+  display_name?: string | null;
+  presentity_uri: string;
+  is_enabled?: boolean;
+}
+
+export interface BlfExtensionAvailability {
+  extension: string;
+  display_name?: null | string;
+  presentity_uri: string;
+  state: BlfExtensionState | string;
+  available: boolean;
+  stale: boolean;
+  last_notify_at?: null | string;
+  stale_at?: null | string;
+  subscription_status?: string;
+}
+
+export interface BlfAvailabilityResponse {
+  blf_configuration_sid: string;
+  observed_at: string;
+  extensions: BlfExtensionAvailability[];
+  available: string[];
+  unavailable: string[];
+  counts: {
+    total: number;
+    available: number;
+    unavailable: number;
+    unknown: number;
+    stale: number;
+  };
+  any_available: boolean;
+  all_available: boolean;
+}
+
+export interface BlfRotateTokenResponse {
+  capability_token: string;
+  capability_url: string;
+}
